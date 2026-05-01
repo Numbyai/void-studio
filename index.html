@@ -1915,7 +1915,7 @@ async function checkPollinations() {
 
 // ── Claude SVG avatar generation — fallback when Pollinations unavailable ──
 async function generateSVGAvatar(parsed, name, prompt) {
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
+  const response = await fetch('/api/claude', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -1953,7 +1953,7 @@ async function generateSVGBackground(parsed, prompt) {
   const primary = parsed.palette?.primary || '#7c3aed';
   const ambient = parsed.chatTheme?.ambientColor || primary;
 
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
+  const response = await fetch('/api/claude', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -2432,7 +2432,7 @@ async function generateAI() {
   }, 900);
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('/api/claude', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -3191,7 +3191,7 @@ async function sendAIMessage() {
       ...aiAgent.chatHistory.slice(-14)
     ];
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('/api/claude', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
