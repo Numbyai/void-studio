@@ -1891,7 +1891,7 @@ let aiAgent = null;
 let aiChatBgAnim = null;
 let aiChatBgState = {};
 let aiChatBgFrame = null;
-let _pollinationsAvailable = null; // null=untested, true/false after test
+let _pollinationsAvailable = null; // null=untested — resets on each page load
 
 // ── Environment detection — test once on first AI generation ──
 async function checkPollinations() {
@@ -1901,7 +1901,7 @@ async function checkPollinations() {
     const testUrl = 'https://image.pollinations.ai/prompt/test?width=32&height=32&model=flux&nologo=true&enhance=false&seed=1';
     const result = await new Promise((resolve) => {
       const img = new Image();
-      const timer = setTimeout(() => { img.src=''; resolve(false); }, 8000);
+      const timer = setTimeout(() => { img.src=''; resolve(false); }, 25000);
       img.onload = () => { clearTimeout(timer); resolve(true); };
       img.onerror = () => { clearTimeout(timer); resolve(false); };
       img.src = testUrl;
@@ -2496,9 +2496,9 @@ Return ONLY valid JSON with NO markdown, no backticks, no explanation. Just the 
     const cleanStr = s => s.replace(/[^\w\s,.\-']/g, '').trim().slice(0, 500);
     const seed = Math.floor(Math.random() * 999999);
 
-    // ── Test if Pollinations is reachable ──
-    stepEl.textContent = 'Checking image service...';
-    const canUsePollinations = await checkPollinations();
+    // ── Always try Pollinations first — fall back to SVG only if images fail ──
+    stepEl.textContent = 'Generating images...';
+    const canUsePollinations = true;
 
     let avatarResult = null;
     let bgResult = null;
