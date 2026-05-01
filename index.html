@@ -474,8 +474,8 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fu);min-height:100vh
 #screen-ai{height:calc(100vh - 50px);overflow:hidden;position:relative;z-index:1;}
 #screen-ai.on{display:flex;flex-direction:column;}
 .ai-chat-bg{position:absolute;inset:0;z-index:0;}
-.ai-chat-canvas{position:absolute;inset:0;width:100%;height:100%;}
-.ai-chat-overlay{position:absolute;inset:0;background:radial-gradient(ellipse at center, rgba(5,6,8,0) 0%, rgba(5,6,8,0) 40%, rgba(5,6,8,.55) 100%);z-index:1;pointer-events:none;}
+.ai-chat-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:1;}
+.ai-chat-overlay{position:absolute;inset:0;background:radial-gradient(ellipse at center, rgba(5,6,8,0) 0%, rgba(5,6,8,0) 40%, rgba(5,6,8,.55) 100%);z-index:2;pointer-events:none;}
 .ai-chat-body{position:relative;z-index:2;display:flex;flex-direction:column;height:100%;}
 .ai-chat-hdr{flex-shrink:0;padding:12px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--b1);background:rgba(5,6,8,.6);backdrop-filter:blur(16px);}
 .ai-chat-avatar{width:38px;height:38px;border-radius:50%;flex-shrink:0;overflow:hidden;border:2px solid;}
@@ -2646,10 +2646,10 @@ function startChatBgAnim() {
   window._aiResizeHandler = resize; resize();
   window.addEventListener('resize', resize);
 
-  // Init scene state
-  const S = {t:0, pc, ac, bg, style, pts:[]};
+  // If real bg image exists, only draw particle overlay on top of it
+  const hasRealBg = !!(aiAgent.bgImg);
+  const S = {t:0, pc, ac, bg, style, pts:[], hasRealBg};
 
-  // Seed particles based on scene
   const cnt = style==='rain'?80:style==='space'||style==='stars'?120:55;
   for(let i=0;i<cnt;i++) S.pts.push(mkScenePt(canvas.width,canvas.height,style,pc));
 
@@ -2660,7 +2660,11 @@ function startChatBgAnim() {
     const W=canvas.width, H=canvas.height;
     if(!W||!H){aiChatBgFrame=requestAnimationFrame(frame);return;}
     cx.clearRect(0,0,W,H);
-    drawScene(cx,W,H,S);
+    if(hasRealBg){
+      drawParticleOverlay(cx,W,H,S);
+    } else {
+      drawScene(cx,W,H,S);
+    }
     aiChatBgFrame=requestAnimationFrame(frame);
   }
   frame();
@@ -2679,6 +2683,60 @@ function mkScenePt(W,H,style,color){
   else if(style==='jungle'||style==='forest'){p.r=Math.random()*3+1.5;p.vy=.3+Math.random()*.4;p.rot=Math.random()*Math.PI*2;}
   else{p.r=Math.random()*2+.5;p.vy=-(Math.random()*.4+.1);}
   return p;
+}
+
+function drawParticleOverlay(cx,W,H,S){
+  const {t,pts,pc,ac,style} = S;
+  // Ambient glow only — no opaque fill
+  const ag=cx.createRadialGradient(W*.5,H*.4,0,W*.5,H*.4,W*.6);
+  ag.addColorStop(0,hexAlpha(ac,.04+Math.sin(t*.012)*.02));
+  ag.addColorStop(1,'rgba(0,0,0,0)');
+  cx.fillStyle=ag;cx.fillRect(0,0,W,H);
+  // Particles
+  pts.forEach(p=>{
+    updateParticleSim(p,W,H,style,t);
+    drawParticleSim(cx,p,style,pc);
+  });
+  // Edge vignette
+  const vig=cx.createRadialGradient(W/2,H/2,Math.min(W,H)*.25,W/2,H/2,Math.max(W,H)*.75);
+  vig.addColorStop(0,'rgba(0,0,0,0)');
+  vig.addColorStop(1,'rgba(0,0,0,.45)');
+  cx.fillStyle=vig;cx.fillRect(0,0,W,H);
+}
+
+function updateParticleSim(p,W,H,style,t){
+  p.phase+=.025;
+  if(style==='stars'){p.twinkle=(p.twinkle||0)+.04;}
+  else if(style==='rain'){p.y+=p.vy||5;p.x+=p.vx||-.5;if(p.y>H)p.y=0;if(p.x<0)p.x=W;}
+  else if(style==='temple'||style==='nature'){p.y+=(p.vy||.5);p.x+=Math.sin(t*.02+p.phase)*.3;p.rot=(p.rot||0)+.02;if(p.y>H)p.y=-10;}
+  else if(style==='jungle'||style==='forest'){p.y+=(p.vy||.4);p.x+=Math.sin(t*.02+p.phase)*.3;if(p.y>H)p.y=0;}
+  else if(style==='cyberpunk'){p.y+=(p.vy||.5);if(p.y>H)p.y=0;}
+  else{p.y+=(p.vy||-.3);p.x+=Math.sin(t*.015+p.phase)*.2;if(p.y<-10)p.y=H;if(p.y>H)p.y=0;}
+  if(p.x>W+10)p.x=-10;if(p.x<-10)p.x=W+10;
+}
+
+function drawParticleSim(cx,p,style,color){
+  cx.save();
+  if(style==='stars'){
+    const op=.15+Math.abs(Math.sin(p.twinkle||0))*.55;
+    cx.fillStyle=hexAlpha(color,op);
+    cx.beginPath();cx.arc(p.x,p.y,p.r||1,0,Math.PI*2);cx.fill();
+  } else if(style==='rain'||style==='cyberpunk'){
+    cx.strokeStyle=hexAlpha(color,.2);cx.lineWidth=.8;
+    cx.beginPath();cx.moveTo(p.x,p.y);cx.lineTo(p.x-(p.vx||0)*3,p.y+(p.vy||5)*3);cx.stroke();
+  } else if(style==='temple'||style==='nature'){
+    cx.translate(p.x,p.y);cx.rotate(p.rot||0);
+    cx.fillStyle=hexAlpha(color,.35);
+    cx.beginPath();cx.ellipse(0,0,p.r||3,(p.r||3)*.5,0,0,Math.PI*2);cx.fill();
+  } else {
+    const op=.15+Math.abs(Math.sin(p.phase))*.3;
+    cx.fillStyle=hexAlpha(color,op);
+    cx.beginPath();cx.arc(p.x,p.y,p.r||1.5,0,Math.PI*2);cx.fill();
+    const halo=cx.createRadialGradient(p.x,p.y,0,p.x,p.y,(p.r||1.5)*4);
+    halo.addColorStop(0,hexAlpha(color,op*.25));halo.addColorStop(1,'rgba(0,0,0,0)');
+    cx.fillStyle=halo;cx.beginPath();cx.arc(p.x,p.y,(p.r||1.5)*4,0,Math.PI*2);cx.fill();
+  }
+  cx.restore();
 }
 
 function drawScene(cx,W,H,S){
