@@ -471,15 +471,31 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fu);min-height:100vh
 .ai-loading-text{font-family:var(--fm);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--t3);}
 .ai-loading-step{font-family:var(--fm);font-size:8px;color:var(--ether);letter-spacing:1px;text-align:center;}
 /* AI Chat Screen */
+/* ── AI CHAT HERO LAYOUT ── */
 #screen-ai{height:calc(100vh - 50px);overflow:hidden;position:relative;z-index:1;}
 #screen-ai.on{display:flex;flex-direction:column;}
 .ai-chat-bg{position:absolute;inset:0;z-index:0;}
 .ai-chat-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:1;}
 .ai-chat-overlay{position:absolute;inset:0;background:radial-gradient(ellipse at center, rgba(5,6,8,0) 0%, rgba(5,6,8,0) 40%, rgba(5,6,8,.55) 100%);z-index:2;pointer-events:none;}
-.ai-chat-body{position:relative;z-index:2;display:flex;flex-direction:column;height:100%;}
-.ai-chat-hdr{flex-shrink:0;padding:12px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--b1);background:rgba(5,6,8,.6);backdrop-filter:blur(16px);}
-.ai-chat-avatar{width:38px;height:38px;border-radius:50%;flex-shrink:0;overflow:hidden;border:2px solid;}
-.ai-chat-avatar canvas{width:100%;height:100%;display:block;}
+.ai-chat-body{position:relative;z-index:3;display:flex;flex-direction:column;height:100%;}
+
+/* Hero section — large avatar */
+.ai-chat-hero{flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:24px 20px 16px;gap:12px;background:linear-gradient(to bottom, rgba(5,6,8,.5) 0%, rgba(5,6,8,.0) 100%);}
+.ai-chat-hero-avatar{width:110px;height:110px;border-radius:50%;overflow:hidden;border:3px solid;flex-shrink:0;box-shadow:0 0 30px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.05);}
+.ai-chat-hero-avatar img,.ai-chat-hero-avatar canvas{width:100%;height:100%;object-fit:cover;display:block;border-radius:50%;}
+.ai-chat-hero-info{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.ai-chat-hero-name{font-family:var(--fm);font-size:22px;letter-spacing:2px;color:var(--t1);text-transform:uppercase;}
+.ai-chat-hero-status{display:flex;align-items:center;gap:6px;font-family:var(--fu);font-size:11px;color:var(--t3);letter-spacing:.5px;}
+.ai-chat-hero-actions{display:flex;gap:8px;}
+.ai-chat-hero-btn{font-family:var(--fm);font-size:9px;letter-spacing:1px;padding:5px 12px;border-radius:20px;border:1px solid rgba(255,255,255,.1);background:rgba(5,6,8,.6);color:var(--t2);cursor:pointer;transition:all .2s;}
+.ai-chat-hero-btn:hover{border-color:rgba(255,255,255,.25);color:var(--t1);}
+
+/* Messages fill remaining space */
+.ai-messages{flex:1;overflow-y:auto;padding:12px 20px 16px;display:flex;flex-direction:column;gap:14px;}
+.ai-messages::-webkit-scrollbar{width:3px;}.ai-messages::-webkit-scrollbar-track{background:transparent;}.ai-messages::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px;}
+
+/* Input bar at bottom */
+.ai-chat-input-row{flex-shrink:0;padding:12px 20px 16px;background:rgba(5,6,8,.75);backdrop-filter:blur(20px);border-top:1px solid var(--b1);display:flex;gap:10px;align-items:flex-end;}
 .ai-chat-info{flex:1;}
 .ai-chat-name{font-family:var(--fd);font-size:18px;letter-spacing:2px;}
 .ai-chat-status{font-family:var(--fm);font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--t3);display:flex;align-items:center;gap:5px;}
@@ -842,17 +858,23 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fu);min-height:100vh
     <div class="ai-chat-overlay"></div>
   </div>
   <div class="ai-chat-body">
-    <div class="ai-chat-hdr">
-      <div class="ai-chat-avatar" id="aiChatAvatar" style="border-color:var(--ether)">
-        <canvas width="38" height="38" id="aiChatAvatarCanvas"></canvas>
+    <!-- Hero section with large avatar -->
+    <div class="ai-chat-hero">
+      <div class="ai-chat-hero-avatar" id="aiChatAvatar" style="border-color:var(--ether)"></div>
+      <div class="ai-chat-hero-info">
+        <div class="ai-chat-hero-name" id="aiChatName">—</div>
+        <div class="ai-chat-hero-status">
+          <div class="ai-online-dot" style="background:var(--teal);box-shadow:0 0 5px var(--teal)"></div>
+          Online · Ready
+        </div>
       </div>
-      <div class="ai-chat-info">
-        <div class="ai-chat-name" id="aiChatName">—</div>
-        <div class="ai-chat-status"><div class="ai-online-dot" style="background:var(--teal);box-shadow:0 0 5px var(--teal)"></div>Online · Ready</div>
+      <div class="ai-chat-hero-actions">
+        <button class="ai-chat-hero-btn" onclick="changeAI()">↺ Change AI</button>
       </div>
-      <button class="ai-chat-edit" onclick="changeAI()">↺ Change AI</button>
     </div>
+    <!-- Messages -->
     <div class="ai-messages" id="aiMessages"></div>
+    <!-- Input bar -->
     <div class="ai-chat-input-row">
       <textarea class="ai-chat-input" id="aiChatInput" placeholder="Talk to your AI..." rows="1" onkeydown="handleAIChatKey(event)" oninput="autoResizeAI(this)"></textarea>
       <button class="ai-send-btn" id="aiSendBtn" onclick="sendAIMessage()">
@@ -2513,15 +2535,24 @@ Return ONLY valid JSON with NO markdown, no backticks, no explanation. Just the 
       const avatarUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(avatarPromptStr)}?width=512&height=512&model=flux&nologo=true&enhance=false&seed=${seed}`;
       const bgUrl     = `https://image.pollinations.ai/prompt/${encodeURIComponent(bgPromptStr)}?width=896&height=512&model=flux&nologo=true&enhance=false&seed=${seed+1}`;
 
-      async function waitForImg(url) {
-        return new Promise((resolve) => {
+      async function waitForImg(url, retries = 2) {
+      for (let attempt = 0; attempt <= retries; attempt++) {
+        const result = await new Promise((resolve) => {
           const img = new Image();
           const timer = setTimeout(() => { img.src = ''; resolve(null); }, 45000);
           img.onload = () => { clearTimeout(timer); resolve(url); };
           img.onerror = () => { clearTimeout(timer); resolve(null); };
-          img.src = url;
+          // On retry, add a fresh seed to bust Pollinations cache
+          img.src = attempt === 0 ? url : url.replace(/seed=\d+/, `seed=${Math.floor(Math.random()*999999)}`);
         });
+        if (result) return result;
+        if (attempt < retries) {
+          stepEl.textContent = `Retrying image (attempt ${attempt + 2})...`;
+          await new Promise(r => setTimeout(r, 2000)); // wait 2s before retry
+        }
       }
+      return null;
+    }
 
       [avatarResult, bgResult] = await Promise.all([
         waitForImg(avatarUrl),
@@ -2586,7 +2617,7 @@ function applyChatTheme() {
   if (sendBtn) sendBtn.style.background = p.primary || '#7c3aed';
 
   const nameEl = document.getElementById('aiChatName');
-  if (nameEl) { nameEl.textContent = aiAgent.name; nameEl.style.color = p.primary || 'var(--ether)'; }
+  if (nameEl) { nameEl.textContent = aiAgent.name; nameEl.style.color = p.primary || 'var(--t1)'; }
 
   // ── Chat header avatar ──
   const avatarWrap = document.getElementById('aiChatAvatar');
@@ -2600,8 +2631,8 @@ function applyChatTheme() {
       avatarWrap.appendChild(img);
     } else {
       const cv = document.createElement('canvas');
-      cv.width = 38; cv.height = 38;
-      drawAvatarCanvas(cv, aiAgent.avatarData, 38);
+      cv.width = 110; cv.height = 110;
+      drawAvatarCanvas(cv, aiAgent.avatarData, 110);
       avatarWrap.appendChild(cv);
     }
   }
