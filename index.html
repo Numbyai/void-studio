@@ -2529,19 +2529,23 @@ Return ONLY valid JSON with NO markdown, no backticks, no explanation. Just the 
       ]);
     }
 
-    if (!avatarResult || !bgResult) {
-      // ── PATH B: Claude SVG generation (always available) ──
-      stepEl.textContent = canUsePollinations
-        ? 'Images timed out — generating SVG portraits...'
-        : 'Generating illustrated portraits...';
-
+    if (!avatarResult && !bgResult) {
+      // Both failed — generate both as SVG
+      stepEl.textContent = 'Pollinations unavailable — generating illustrated portraits...';
       const [svgAvatar, svgBg] = await Promise.all([
         generateSVGAvatar(parsed, name, prompt),
         generateSVGBackground(parsed, prompt)
       ]);
-
-      avatarResult = svgAvatar || avatarResult; // keep Pollinations avatar if it loaded
-      bgResult = svgBg || bgResult;
+      avatarResult = svgAvatar;
+      bgResult = svgBg;
+    } else if (!avatarResult) {
+      // Only avatar failed — generate just avatar as SVG
+      stepEl.textContent = 'Generating avatar illustration...';
+      avatarResult = await generateSVGAvatar(parsed, name, prompt);
+    } else if (!bgResult) {
+      // Only background failed — generate just background as SVG
+      stepEl.textContent = 'Generating background illustration...';
+      bgResult = await generateSVGBackground(parsed, prompt);
     }
 
     if (!avatarResult && !bgResult) throw new Error('Image generation failed on all paths');
