@@ -590,6 +590,20 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fu);min-height:100vh
 </style>
 </head>
 <body>
+  <script type="module">
+  import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+  const supabase = createClient('https://xbekjpzlowxgvwefopve.supabase.co', 'sb_publishable_rjhOnb9jBndJAzUQwuzYMQ_tg_Jd7T2');
+  document.documentElement.style.visibility = 'hidden';
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session || !session.user.email_confirmed_at) {
+    window.location.replace('/login.html');
+  } else {
+    document.documentElement.style.visibility = '';
+    window.__voidUser = session.user;
+    window.__voidSupabase = supabase;
+    window.__voidLogout = async () => { await supabase.auth.signOut(); window.location.replace('/login.html'); };
+  }
+</script>
 <div class="bg-c"><div class="bg-o"></div><div class="bg-o"></div><div class="bg-o"></div></div>
 <div class="bg-g"></div>
 <div class="nav">
