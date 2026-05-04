@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>VØID — Access Required</title>
+<style>
+  :root {
+    --teal: #1DCFA8;
+    --pink: #D4537E;
+    --orange: #EF9F27;
+    --bg: #000;
+    --text: #fff;
+    --text-dim: rgba(255,255,255,0.5);
+    --text-faint: rgba(255,255,255,0.3);
+    --border: rgba(255,255,255,0.1);
+    --surface: rgba(255,255,255,0.03);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    position: relative;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--teal) 20%, var(--pink) 50%, var(--orange) 80%, transparent);
+    z-index: 1;
+  }
+  .container {
+    width: 100%;
+    max-width: 400px;
+    padding: 40px 28px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 40px;
+    justify-content: center;
+  }
+  .brand-dot {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 1.5px solid var(--teal);
+    position: relative;
+  }
+  .brand-dot::after {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border-radius: 50%;
+    background: var(--teal);
+  }
+  .brand-text {
+    color: var(--teal);
+    font-weight: 500;
+    font-size: 18px;
+    letter-spacing: 4px;
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+  }
+  .eyebrow {
+    color: var(--teal);
+    font-size: 11px;
+    letter-spacing: 3px;
+    margin-bottom: 8px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  h1 {
+    font-size: 28px;
+    font-weight: 500;
+    margin-bottom: 4px;
+    letter-spacing: -0.5px;
+  }
+  .accent {
+    background: linear-gradient(90deg, var(--pink), var(--orange));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 28px;
+  }
+  .tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .tab {
+    flex: 1;
+    background: transparent;
+    border: 0;
+    color: var(--text-dim);
+    padding: 12px 0;
+    font-size: 11px;
+    letter-spacing: 2px;
+    font-family: 'JetBrains Mono', monospace;
+    cursor: pointer;
+    transition: color 0.15s;
+  }
+  .tab.active {
+    color: var(--teal);
+    border-bottom: 1px solid var(--teal);
+  }
+  .tab:not(.active):hover { color: rgba(255,255,255,0.7); }
+  label {
+    display: block;
+    color: var(--text-dim);
+    font-size: 10px;
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 11px 12px;
+    color: var(--text);
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+    transition: border-color 0.15s;
+  }
+  input:focus {
+    outline: none;
+    border-color: var(--teal);
+  }
+  .field { margin-bottom: 16px; }
+  .forgot {
+    display: block;
+    text-align: right;
+    margin-bottom: 24px;
+  }
+  .forgot a {
+    color: var(--text-dim);
+    font-size: 11px;
+    text-decoration: none;
+    font-family: 'JetBrains Mono', monospace;
+    cursor: pointer;
+  }
+  .forgot a:hover { color: var(--teal); }
+  button.primary {
+    width: 100%;
+    background: var(--teal);
+    border: 0;
+    color: #000;
+    padding: 14px;
+    border-radius: 4px;
+    font-weight: 500;
+    font-size: 12px;
+    letter-spacing: 3px;
+    font-family: 'JetBrains Mono', monospace;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  button.primary:hover { opacity: 0.9; }
+  button.primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .footer-tag {
+    text-align: center;
+    color: var(--text-faint);
+    font-size: 10px;
+    letter-spacing: 2px;
+    margin-top: 24px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .message {
+    padding: 10px 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.5px;
+    margin-bottom: 16px;
+    display: none;
+  }
+  .message.show { display: block; }
+  .message.error {
+    background: rgba(212, 83, 126, 0.1);
+    border: 1px solid rgba(212, 83, 126, 0.4);
+    color: var(--pink);
+  }
+  .message.success {
+    background: rgba(29, 207, 168, 0.1);
+    border: 1px solid rgba(29, 207, 168, 0.4);
+    color: var(--teal);
+  }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="brand">
+      <div class="brand-dot"></div>
+      <span class="brand-text">VØID</span>
+    </div>
+
+    <p class="eyebrow">— ACCESS REQUIRED</p>
+    <h1>ENTER THE</h1>
+    <h1 class="accent">VOID.</h1>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="login">LOG IN</button>
+      <button class="tab" data-tab="signup">SIGN UP</button>
+      <button class="tab" data-tab="reset" style="flex: 0 0 auto; padding: 12px 14px; display: none;" id="reset-tab">RESET</button>
+    </div>
+
+    <div id="message" class="message"></div>
+
+    <!-- LOGIN -->
+    <form id="login-form">
+      <div class="field">
+        <label for="login-email">EMAIL</label>
+        <input type="email" id="login-email" required autocomplete="email" />
+      </div>
+      <div class="field">
+        <label for="login-password">PASSWORD</label>
+        <input type="password" id="login-password" required autocomplete="current-password" />
+      </div>
+      <div class="forgot">
+        <a id="forgot-link">FORGOT PASSWORD?</a>
+      </div>
+      <button type="submit" class="primary" id="login-btn">▶  ENTER</button>
+    </form>
+
+    <!-- SIGNUP -->
+    <form id="signup-form" class="hidden">
+      <div class="field">
+        <label for="signup-email">EMAIL</label>
+        <input type="email" id="signup-email" required autocomplete="email" />
+      </div>
+      <div class="field">
+        <label for="signup-password">PASSWORD (MIN 8 CHARS)</label>
+        <input type="password" id="signup-password" required minlength="8" autocomplete="new-password" />
+      </div>
+      <div class="field" style="margin-bottom: 24px;">
+        <label for="signup-confirm">CONFIRM PASSWORD</label>
+        <input type="password" id="signup-confirm" required minlength="8" autocomplete="new-password" />
+      </div>
+      <button type="submit" class="primary" id="signup-btn">▶  CREATE ACCOUNT</button>
+    </form>
+
+    <!-- RESET -->
+    <form id="reset-form" class="hidden">
+      <div class="field" style="margin-bottom: 24px;">
+        <label for="reset-email">EMAIL</label>
+        <input type="email" id="reset-email" required autocomplete="email" />
+      </div>
+      <button type="submit" class="primary" id="reset-btn">▶  SEND RESET LINK</button>
+    </form>
+
+    <p class="footer-tag">— UNDERGROUND MUSIC STUDIO —</p>
+  </div>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const SUPABASE_URL = 'https://xbekjpzlowxgvwefopve.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_rjhOnb9jBndJAzUQwuzYMQ_tg_Jd7T2';
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// If already logged in AND email confirmed, send to app
+(async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session?.user?.email_confirmed_at) {
+    window.location.href = '/';
+  }
+})();
+
+const msg = document.getElementById('message');
+const showMsg = (text, type = 'error') => {
+  msg.textContent = text;
+  msg.className = `message show ${type}`;
+};
+const hideMsg = () => { msg.className = 'message'; };
+
+// Tab switching
+const forms = {
+  login: document.getElementById('login-form'),
+  signup: document.getElementById('signup-form'),
+  reset: document.getElementById('reset-form'),
+};
+const tabs = document.querySelectorAll('.tab');
+const resetTab = document.getElementById('reset-tab');
+
+const switchTab = (name) => {
+  tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  Object.entries(forms).forEach(([k, f]) => f.classList.toggle('hidden', k !== name));
+  resetTab.style.display = name === 'reset' ? 'block' : 'none';
+  hideMsg();
+};
+
+tabs.forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
+document.getElementById('forgot-link').addEventListener('click', () => switchTab('reset'));
+
+// LOGIN
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('login-btn');
+  btn.disabled = true; btn.textContent = '◌  ENTERING...';
+  hideMsg();
+
+  const email = document.getElementById('login-email').value;
+  const password = document.getElementById('login-password').value;
+
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+  if (error) {
+    showMsg(error.message.toUpperCase());
+  } else if (!data.user.email_confirmed_at) {
+    showMsg('CONFIRM YOUR EMAIL FIRST. CHECK YOUR INBOX.');
+    await supabase.auth.signOut();
+  } else {
+    window.location.href = '/';
+    return;
+  }
+  btn.disabled = false; btn.textContent = '▶  ENTER';
+});
+
+// SIGNUP
+document.getElementById('signup-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('signup-btn');
+  btn.disabled = true; btn.textContent = '◌  CREATING...';
+  hideMsg();
+
+  const email = document.getElementById('signup-email').value;
+  const password = document.getElementById('signup-password').value;
+  const confirm = document.getElementById('signup-confirm').value;
+
+  if (password !== confirm) {
+    showMsg('PASSWORDS DON\u2019T MATCH.');
+    btn.disabled = false; btn.textContent = '▶  CREATE ACCOUNT';
+    return;
+  }
+
+  const { data, error } = await supabase.auth.signUp({
+    email, password,
+    options: { emailRedirectTo: window.location.origin + '/login.html' }
+  });
+
+  if (error) {
+    showMsg(error.message.toUpperCase());
+  } else {
+    showMsg('CHECK YOUR EMAIL TO CONFIRM YOUR ACCOUNT.', 'success');
+  }
+  btn.disabled = false; btn.textContent = '▶  CREATE ACCOUNT';
+});
+
+// RESET
+document.getElementById('reset-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('reset-btn');
+  btn.disabled = true; btn.textContent = '◌  SENDING...';
+  hideMsg();
+
+  const email = document.getElementById('reset-email').value;
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + '/login.html'
+  });
+
+  if (error) {
+    showMsg(error.message.toUpperCase());
+  } else {
+    showMsg('IF AN ACCOUNT EXISTS, A RESET LINK IS ON ITS WAY.', 'success');
+  }
+  btn.disabled = false; btn.textContent = '▶  SEND RESET LINK';
+});
+</script>
+</body>
+</html>

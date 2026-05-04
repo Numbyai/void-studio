@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>VØID — Admin</title>
+<style>
+  :root {
+    --teal: #1DCFA8;
+    --pink: #D4537E;
+    --orange: #EF9F27;
+    --bg: #000;
+    --text: #fff;
+    --text-dim: rgba(255,255,255,0.5);
+    --text-faint: rgba(255,255,255,0.3);
+    --border: rgba(255,255,255,0.08);
+    --border-soft: rgba(255,255,255,0.05);
+    --surface: rgba(255,255,255,0.03);
+    --surface-faint: rgba(255,255,255,0.02);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--teal) 20%, var(--pink) 50%, var(--orange) 80%, transparent);
+    z-index: 1;
+  }
+  .container { max-width: 1200px; margin: 0 auto; }
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .brand-dot {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    border: 1.5px solid var(--teal);
+    position: relative;
+  }
+  .brand-dot::after {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    border-radius: 50%;
+    background: var(--teal);
+  }
+  .brand-text {
+    color: var(--teal);
+    font-weight: 500;
+    font-size: 14px;
+    letter-spacing: 3px;
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+  }
+  .brand-suffix {
+    color: var(--text-faint);
+    font-size: 11px;
+    letter-spacing: 2px;
+    margin-left: 8px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .top-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .user-email {
+    color: var(--text-dim);
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .btn {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--text);
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 10px;
+    letter-spacing: 2px;
+    font-family: 'JetBrains Mono', monospace;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.3); }
+  .btn-back {
+    background: var(--teal);
+    color: #000;
+    border-color: var(--teal);
+  }
+  .btn-back:hover { opacity: 0.85; background: var(--teal); }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    border-radius: 4px;
+    padding: 14px 16px;
+  }
+  .stat-card.teal {
+    background: rgba(29, 207, 168, 0.06);
+    border: 1px solid rgba(29, 207, 168, 0.3);
+  }
+  .stat-card.pink {
+    background: rgba(212, 83, 126, 0.06);
+    border: 1px solid rgba(212, 83, 126, 0.3);
+  }
+  .stat-card.orange {
+    background: rgba(239, 159, 39, 0.06);
+    border: 1px solid rgba(239, 159, 39, 0.3);
+  }
+  .stat-card.neutral {
+    background: var(--surface);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .stat-label {
+    font-size: 9px;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .stat-card.teal .stat-label { color: var(--teal); }
+  .stat-card.pink .stat-label { color: var(--pink); }
+  .stat-card.orange .stat-label { color: var(--orange); }
+  .stat-card.neutral .stat-label { color: var(--text-dim); }
+  .stat-value {
+    color: var(--text);
+    font-size: 26px;
+    font-weight: 500;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .search {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 4px;
+    padding: 8px 12px;
+    color: var(--text);
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .search:focus { outline: none; border-color: var(--teal); }
+  .table {
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .table-row {
+    display: grid;
+    grid-template-columns: 2.5fr 1fr 1fr 1fr 60px;
+    gap: 8px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border-soft);
+    align-items: center;
+  }
+  .table-row.header {
+    background: var(--surface-faint);
+    border-bottom: 1px solid var(--border);
+  }
+  .table-row:last-child { border-bottom: 0; }
+  .table-row.header span {
+    color: var(--text-dim);
+    font-size: 9px;
+    letter-spacing: 2px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .email { color: var(--text); font-size: 12px; font-family: 'JetBrains Mono', monospace; word-break: break-all; }
+  .meta { color: var(--text-dim); font-size: 11px; font-family: 'JetBrains Mono', monospace; }
+  .meta-faint { color: var(--text-faint); font-size: 11px; font-family: 'JetBrains Mono', monospace; }
+  .badge {
+    display: inline-block;
+    color: var(--teal);
+    font-size: 9px;
+    letter-spacing: 1px;
+    padding: 2px 6px;
+    border: 1px solid rgba(29, 207, 168, 0.4);
+    border-radius: 3px;
+    margin-left: 6px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .status {
+    font-size: 10px;
+    letter-spacing: 1px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .status.active { color: var(--teal); }
+  .status.unconfirmed { color: var(--orange); }
+  .status.disabled { color: var(--pink); }
+  .row-actions {
+    text-align: right;
+    color: var(--text-dim);
+    font-size: 18px;
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+  }
+  .row-actions:hover { color: var(--text); }
+  .menu {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background: #111;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 4px;
+    min-width: 180px;
+    z-index: 10;
+    display: none;
+  }
+  .menu.open { display: block; }
+  .menu button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: 0;
+    color: var(--text);
+    padding: 8px 12px;
+    font-size: 11px;
+    letter-spacing: 1px;
+    font-family: 'JetBrains Mono', monospace;
+    cursor: pointer;
+    border-radius: 3px;
+  }
+  .menu button:hover { background: rgba(255,255,255,0.05); }
+  .menu button.danger { color: var(--pink); }
+  .empty, .loading {
+    padding: 40px;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 12px;
+    letter-spacing: 2px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .gate {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .gate-text {
+    color: var(--pink);
+    font-size: 14px;
+    letter-spacing: 3px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  @media (max-width: 700px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .table-row { grid-template-columns: 1.5fr 1fr 50px; gap: 6px; }
+    .table-row .col-signup, .table-row .col-login { display: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="container" id="root">
+    <div class="loading">◌  CHECKING ACCESS...</div>
+  </div>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const SUPABASE_URL = 'https://xbekjpzlowxgvwefopve.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_rjhOnb9jBndJAzUQwuzYMQ_tg_Jd7T2';
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+const root = document.getElementById('root');
+
+const fmt = (d) => {
+  if (!d) return 'never';
+  const date = new Date(d);
+  const now = Date.now();
+  const diff = now - date.getTime();
+  const m = Math.floor(diff / 60000);
+  const h = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m}m ago`;
+  if (h < 24) return `${h}h ago`;
+  if (days < 30) return `${days}d ago`;
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+};
+
+const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—';
+
+const showGate = (text) => {
+  root.innerHTML = `
+    <div class="gate">
+      <p class="gate-text">— ${text} —</p>
+      <button class="btn btn-back" onclick="window.location.href='/'">RETURN TO VOID</button>
+    </div>`;
+};
+
+// Check access
+const { data: { session } } = await supabase.auth.getSession();
+if (!session) {
+  window.location.href = '/login.html';
+} else if (session.user.user_metadata?.role !== 'admin') {
+  showGate('ACCESS DENIED');
+} else {
+  await renderAdmin(session);
+}
+
+async function callAdmin(action, payload = {}) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const res = await fetch('/api/admin', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify({ action, ...payload }),
+  });
+  return res.json();
+}
+
+async function renderAdmin(session) {
+  root.innerHTML = `
+    <div class="topbar">
+      <div style="display:flex;align-items:center;">
+        <div class="brand">
+          <div class="brand-dot"></div>
+          <span class="brand-text">VØID</span>
+        </div>
+        <span class="brand-suffix">/ ADMIN</span>
+      </div>
+      <div class="top-right">
+        <span class="user-email">${session.user.email}</span>
+        <button class="btn" id="back-btn">◀ STUDIO</button>
+        <button class="btn" id="logout-btn">LOG OUT</button>
+      </div>
+    </div>
+
+    <div class="stats" id="stats">
+      <div class="stat-card teal"><div class="stat-label">TOTAL USERS</div><div class="stat-value">—</div></div>
+      <div class="stat-card pink"><div class="stat-label">SIGNUPS TODAY</div><div class="stat-value">—</div></div>
+      <div class="stat-card orange"><div class="stat-label">ACTIVE 7D</div><div class="stat-value">—</div></div>
+      <div class="stat-card neutral"><div class="stat-label">UNCONFIRMED</div><div class="stat-value">—</div></div>
+    </div>
+
+    <div class="controls">
+      <input type="text" class="search" id="search" placeholder="Search by email..." />
+    </div>
+
+    <div class="table" id="table">
+      <div class="table-row header">
+        <span>EMAIL</span>
+        <span class="col-signup">SIGNED UP</span>
+        <span class="col-login">LAST LOGIN</span>
+        <span>STATUS</span>
+        <span></span>
+      </div>
+      <div class="loading">◌  LOADING USERS...</div>
+    </div>
+  `;
+
+  document.getElementById('back-btn').addEventListener('click', () => window.location.href = '/');
+  document.getElementById('logout-btn').addEventListener('click', async () => {
+    await supabase.auth.signOut();
+    window.location.href = '/login.html';
+  });
+
+  let allUsers = [];
+  const search = document.getElementById('search');
+  search.addEventListener('input', () => renderTable(filterUsers(allUsers, search.value)));
+
+  const result = await callAdmin('list');
+  if (result.error) {
+    document.getElementById('table').innerHTML = `<div class="empty">ERROR: ${result.error.toUpperCase()}</div>`;
+    return;
+  }
+  allUsers = result.users || [];
+  renderStats(allUsers);
+  renderTable(allUsers);
+}
+
+function filterUsers(users, q) {
+  if (!q) return users;
+  const lc = q.toLowerCase();
+  return users.filter(u => u.email && u.email.toLowerCase().includes(lc));
+}
+
+function renderStats(users) {
+  const now = Date.now();
+  const dayAgo = now - 86400000;
+  const weekAgo = now - 7 * 86400000;
+  const total = users.length;
+  const today = users.filter(u => new Date(u.created_at).getTime() > dayAgo).length;
+  const active = users.filter(u => u.last_sign_in_at && new Date(u.last_sign_in_at).getTime() > weekAgo).length;
+  const unconfirmed = users.filter(u => !u.email_confirmed_at).length;
+  const cards = document.querySelectorAll('#stats .stat-value');
+  cards[0].textContent = total;
+  cards[1].textContent = today;
+  cards[2].textContent = active;
+  cards[3].textContent = unconfirmed;
+}
+
+function renderTable(users) {
+  const table = document.getElementById('table');
+  // Keep header
+  const header = table.querySelector('.table-row.header');
+  table.innerHTML = '';
+  table.appendChild(header);
+
+  if (!users.length) {
+    const empty = document.createElement('div');
+    empty.className = 'empty';
+    empty.textContent = 'NO USERS FOUND';
+    table.appendChild(empty);
+    return;
+  }
+
+  users.forEach(u => {
+    const row = document.createElement('div');
+    row.className = 'table-row';
+    const isAdmin = u.user_metadata?.role === 'admin';
+    const isDisabled = u.banned_until && new Date(u.banned_until) > new Date();
+    const isUnconfirmed = !u.email_confirmed_at;
+    let statusClass = 'active', statusText = '● ACTIVE';
+    if (isDisabled) { statusClass = 'disabled'; statusText = '● DISABLED'; }
+    else if (isUnconfirmed) { statusClass = 'unconfirmed'; statusText = '● UNCONFIRMED'; }
+
+    row.innerHTML = `
+      <div class="email">
+        ${u.email || '(no email)'}
+        ${isAdmin ? '<span class="badge">ADMIN</span>' : ''}
+      </div>
+      <span class="meta col-signup">${fmtDate(u.created_at)}</span>
+      <span class="${u.last_sign_in_at ? 'meta' : 'meta-faint'} col-login">${fmt(u.last_sign_in_at)}</span>
+      <span class="status ${statusClass}">${statusText}</span>
+      <span class="row-actions" data-id="${u.id}">⋯
+        <div class="menu">
+          <button data-action="reset">SEND RESET EMAIL</button>
+          <button data-action="${isAdmin ? 'demote' : 'promote'}">${isAdmin ? 'REMOVE ADMIN' : 'MAKE ADMIN'}</button>
+          <button data-action="${isDisabled ? 'enable' : 'disable'}">${isDisabled ? 'RE-ENABLE' : 'DISABLE'}</button>
+          <button data-action="delete" class="danger">DELETE USER</button>
+        </div>
+      </span>
+    `;
+    table.appendChild(row);
+  });
+
+  // Wire menus
+  document.querySelectorAll('.row-actions').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.querySelectorAll('.menu.open').forEach(m => { if (m !== el.querySelector('.menu')) m.classList.remove('open'); });
+      el.querySelector('.menu').classList.toggle('open');
+    });
+    el.querySelectorAll('.menu button').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const action = btn.dataset.action;
+        const userId = el.dataset.id;
+        if (action === 'delete' && !confirm('Permanently delete this user?')) return;
+        btn.textContent = '◌ ...';
+        btn.disabled = true;
+        const result = await callAdmin(action, { userId });
+        if (result.error) {
+          alert('Error: ' + result.error);
+          btn.disabled = false;
+          btn.textContent = btn.textContent.replace('◌ ...', '');
+          return;
+        }
+        // Refresh
+        const refreshed = await callAdmin('list');
+        if (refreshed.users) {
+          renderStats(refreshed.users);
+          renderTable(filterUsers(refreshed.users, document.getElementById('search').value));
+        }
+      });
+    });
+  });
+}
+
+// Close menus on outside click
+document.addEventListener('click', () => {
+  document.querySelectorAll('.menu.open').forEach(m => m.classList.remove('open'));
+});
+</script>
+</body>
+</html>
