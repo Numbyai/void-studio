@@ -7,6 +7,16 @@
     "api/admin.js": {
       "memory": 512,
       "maxDuration": 10
+    },
+    "api/keepalive.js": {
+      "memory": 128,
+      "maxDuration": 10
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/keepalive",
+      "schedule": "0 12 * * *"
+    }
+  ]
 }
